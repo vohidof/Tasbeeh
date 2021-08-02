@@ -1,39 +1,60 @@
 package com.example.tasbeeh
 
-import Adapter.RvAdapter
-import Cache.MySharedPreference
-import Model.Remembrance
+import android.content.Context
+import android.content.SharedPreferences
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.core.view.isVisible
 import kotlinx.android.synthetic.main.activity_main.*
+import java.time.LocalDateTime
+import java.time.chrono.HijrahDate
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var rvAdapter: RvAdapter
+    lateinit var context: Context
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         supportActionBar?.hide()
+        val sharedPreferences: SharedPreferences = getPreferences(Context.MODE_PRIVATE)
+        val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
-    }
+        var number = sharedPreferences.getInt("timesRepeated", 0)
 
-    override fun onStart() {
-        super.onStart()
+        txtTotal.text = number.toString()
 
-        MySharedPreference.init(this)
-        val list = MySharedPreference.objectString
+        context = this
 
-        list.add(Remembrance("Subhanallah", "سبحان الله", 0))
-        list.add(Remembrance("Alhamdulillah", "الحمد لله", 0))
-        list.add(Remembrance("Allah Akbar", "الله أكبر", 0))
-        list.add(Remembrance("Astaghfirullah", "أستغفر الله", 0))
-        list.add(Remembrance("Astaghfirullah wa atubu ilaih", "أستغفر الله وأتوب عليه", 0))
+        imgPressCount.setOnClickListener {
+            number++
 
-        rvAdapter = RvAdapter(this, list)
+            editor.clear()
+            editor.putInt("timesRepeated", number)
+            editor.apply()
+            editor.commit()
 
-        rvAdapter.notifyDataSetChanged()
-        recyclerMovies.adapter = rvAdapter
+            number = sharedPreferences.getInt("timesRepeated", 0)
 
+            txtTotal.text = number.toString()
+
+        }
+
+        imgRestart.setOnClickListener {
+            number = 0
+            txtTotal.text = number.toString()
+
+        }
+        val latinedate = LocalDateTime.now()
+        val hijrah = HijrahDate.now()
+        val formatter = DateTimeFormatter.ofPattern("dd EEE MMM yyyy")
+        txtDateLatine.text = latinedate.format(formatter)
+        txtDateArabic.text = hijrah.format(formatter)
     }
 }
